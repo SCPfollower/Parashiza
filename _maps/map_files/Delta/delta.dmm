@@ -97013,8 +97013,10 @@
 /obj/item/clothing/under/color/grey,
 /obj/item/clothing/mask/gas,
 /obj/item/twohanded/spear{
-	desc = "Recovered from the aftermath of a revolt aboard Defense Outpost Theta Aegis, in which a seemingly endless tide of Assistants caused heavy casualities among Nanotrasen military forces.";
-	name = "Grey Tide"
+	desc = "Смертоносное оружие ассистентов, поднявших бунт на дальнем фарпосте Тета Аегис, принадлежащем Нанотрейзен. Выглядит надежным.;
+	name = "Grey Tide";
+	icon_prefix = "spearglass";
+	icon_state = "spearglass0"
 	},
 /turf/simulated/floor/plasteel{
 	dir = 8;

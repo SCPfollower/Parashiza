@@ -401,7 +401,7 @@
 
 //spears
 /obj/item/twohanded/spear
-	icon_state = "spearglass0"
+	icon_state = "knifespear0"
 	name = "spear"
 	desc = "Оружие древней конструкции, хоть и изготовленное небрежно, но всё ещё остаётся смертоносным."
 	force = 10
@@ -412,7 +412,7 @@
 	throwforce = 20
 	throw_speed = 4
 	armour_penetration = 10
-	materials = list(MAT_METAL = 1150, MAT_GLASS = 2075)
+	materials = list(MAT_METAL = 13150)
 	hitsound = 'sound/weapons/bladeslice.ogg'
 	attack_verb = list("атаковал", "ткнул", "уколол", "поранил", "пронзил")
 	sharp = TRUE
@@ -422,7 +422,7 @@
 	var/obj/item/grenade/explosive = null
 	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 50, ACID = 30)
 	needs_permit = TRUE
-	var/icon_prefix = "spearglass"
+	var/icon_prefix = "knifespear"
 
 /obj/item/twohanded/spear/get_ru_names()
 	return list(
@@ -545,7 +545,59 @@
 	force_wielded = 19
 	force_unwielded = 11
 	throwforce = 21
+	embed_chance = 0
+	armour_penetration = 0
+	materials = list(MAT_METAL = 1150, MAT_GLASS = 1050, MAT_PLASMA = 1050)
 	icon_prefix = "spearplasma"
+
+/obj/item/twohanded/spear/fragile_spear	//"Balanced" spear
+	icon_state = "spearglass0"
+	name = "fragile spear"
+	desc = "Самодельное копье с очень хрупким осколком стекла на конце. Всё ещё может порезать!"
+	force = 7
+	force_unwielded = 7
+	force_wielded = 17
+	throwforce = 20
+	embed_chance = 0
+	armour_penetration = 0
+	materials = list(MAT_METAL = 1150, MAT_GLASS = 2075)
+	icon_prefix = "spearglass"
+
+/obj/item/twohanded/spear/fragile_spear/get_ru_names()
+	return list(
+		NOMINATIVE = "хрупкое копьё",
+		GENITIVE = "хрупкого копья",
+		DATIVE = "хрупкому копью",
+		ACCUSATIVE = "хрупкое копьё",
+		INSTRUMENTAL = "хрупким копьём",
+		PREPOSITIONAL = "хрупком копье",
+	)
+
+/obj/item/twohanded/spear/fragile_spear/proc/spear_shatter() // Добавить рандома координатам в тайле у выпадающих вещей
+	if(QDELETED(src))
+		return
+	var/turf/loc1 = get_turf(src)
+	if(!loc1)
+		return
+	playsound(src, 'sound/effects/glass_step.ogg', 75, TRUE, 3)
+	var/obj/item/stack/rods/rand_coords0 = new(loc1)
+	rand_coords0.pixel_x = rand(-3, 3)
+	rand_coords0.pixel_y = rand(-3, 3)
+	var /obj/item/restraints/handcuffs/cable/zipties/used/rand_coords1 = new(loc1)
+	rand_coords1.pixel_x = rand(-3, 3)
+	rand_coords1.pixel_y = rand(-3, 3)
+	new /obj/effect/decal/cleanable/glass(loc1)
+	qdel(src)
+
+/obj/item/twohanded/spear/fragile_spear/attack(mob/living/target, mob/living/user, params, def_zone, skip_attack_anim = FALSE)
+	. = ..()
+	if(ATTACK_CHAIN_SUCCESS_CHECK(.) && prob(20))
+		spear_shatter()
+
+/obj/item/twohanded/spear/fragile_spear/throw_impact(atom/hit_atom, datum/thrownthing/throwingdatum)
+	..()
+	if(prob(20))
+		spear_shatter()
 
 //GREY TIDE
 /obj/item/twohanded/spear/grey_tide

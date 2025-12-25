@@ -432,8 +432,8 @@
 	alert_admins_on_craft = TRUE
 
 /datum/crafting_recipe/spear
-	name = "Spear"
-	result = /obj/item/twohanded/spear
+	name = "Fragile Spear"
+	result = /obj/item/twohanded/spear/fragile_spear
 	reqs = list(
 		/obj/item/restraints/handcuffs/cable = 1,
 		/obj/item/shard = 1,

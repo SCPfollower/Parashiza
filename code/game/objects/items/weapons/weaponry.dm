@@ -194,7 +194,7 @@
 		if(istype(I, /obj/item/shard/plasma))
 			spear = new /obj/item/twohanded/spear/plasma(drop_location())
 		else
-			spear = new /obj/item/twohanded/spear(drop_location())
+			spear = new /obj/item/twohanded/spear/fragile_spear(drop_location())
 		spear.add_fingerprint(user)
 		to_chat(user, span_notice("Ты закрепляешь осколок стекла на конце стержня с помощью провода."))
 		user.put_in_hands(spear, ignore_anim = FALSE)
@@ -212,6 +212,21 @@
 		cattleprod.add_fingerprint(user)
 		to_chat(user, span_notice("Ты закрепляешь [I.declent_ru(ACCUSATIVE)] на конце стержня с помощью провода."))
 		user.put_in_hands(cattleprod, ignore_anim = FALSE)
+		qdel(I)
+		qdel(src)
+		return ATTACK_CHAIN_BLOCKED_ALL
+
+	if(istype(I, /obj/item/kitchen/knife/combat))
+		add_fingerprint(user)
+		if(loc == user && !user.can_unEquip(src))
+			return ATTACK_CHAIN_PROCEED
+		if(!user.drop_transfer_item_to_loc(I, src))
+			return ..()
+		var/obj/item/twohanded/spear/spear
+		spear = new /obj/item/twohanded/spear(drop_location())
+		spear.add_fingerprint(user)
+		to_chat(user, span_notice("Ты закрепляешь нож для выживания на конце стержня с помощью провода."))
+		user.put_in_hands(spear, ignore_anim = FALSE)
 		qdel(I)
 		qdel(src)
 		return ATTACK_CHAIN_BLOCKED_ALL
