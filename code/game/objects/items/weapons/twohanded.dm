@@ -27,6 +27,7 @@
 /*
  * Twohanded
  */
+#define SPEAR_SHATTER_CHANCE 20
 /obj/item/twohanded
 	//All these vars used only for component initialization (twohanded.dm)
 	//`wielded` is actually changed in component, because i'm too lazy to replace it everywhere. At least for now.
@@ -573,7 +574,7 @@
 		PREPOSITIONAL = "хрупком копье",
 	)
 
-/obj/item/twohanded/spear/fragile_spear/proc/spear_shatter() // Добавить рандома координатам в тайле у выпадающих вещей
+/obj/item/twohanded/spear/fragile_spear/proc/spear_shatter()
 	if(QDELETED(src))
 		return
 	var/turf/loc1 = get_turf(src)
@@ -591,12 +592,12 @@
 
 /obj/item/twohanded/spear/fragile_spear/attack(mob/living/target, mob/living/user, params, def_zone, skip_attack_anim = FALSE)
 	. = ..()
-	if(ATTACK_CHAIN_SUCCESS_CHECK(.) && prob(20))
+	if(ATTACK_CHAIN_SUCCESS_CHECK(.) && prob(SPEAR_SHATTER_CHANCE))
 		spear_shatter()
 
 /obj/item/twohanded/spear/fragile_spear/throw_impact(atom/hit_atom, datum/thrownthing/throwingdatum)
 	..()
-	if(prob(20))
+	if(prob(SPEAR_SHATTER_CHANCE))
 		spear_shatter()
 
 //GREY TIDE
