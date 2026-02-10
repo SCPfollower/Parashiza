@@ -150,6 +150,8 @@
 		return .
 	if(loc != user)
 		return .
+	if(istype(target, /obj/item/storage/backpack) && in_range(target, src))
+		return .
 	Fire(user, target)
 
 /obj/item/pneumatic_cannon/proc/Fire(mob/living/carbon/human/user, atom/target)
