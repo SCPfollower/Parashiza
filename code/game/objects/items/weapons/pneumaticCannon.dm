@@ -186,14 +186,50 @@
 	has_wad = FALSE
 	for(var/obj/item/ITD in loadedItems) //Item To Discharge
 		spawn(0)
-			loadedItems.Remove(ITD)
-			loadedWeightClass -= ITD.w_class
-			ITD.throw_speed = pressure_setting * 2
-			ITD.loc = get_turf(src)
-			ITD.throw_at(target, pressure_setting * 5, pressure_setting * 2,user)
+			src.launch_item(ITD, target, user)
+
 	if(pressure_setting >= HIGH_PRESSURE && user)
 		user.visible_message(span_warning("[user.declent_ru(NOMINATIVE)] падает на пол от отдачи!"), span_userdanger("[src.declent_ru(GENITIVE)] роняет вас силой отдачи!"))
 		user.Weaken(6 SECONDS)
+
+/obj/item/pneumatic_cannon/proc/launch_item(obj/item/item, atom/target, mob/user)
+	if(QDELETED(item) || !item)
+		return
+
+	loadedItems.Remove(item)
+	loadedWeightClass -= item.w_class
+	item.throw_speed = pressure_setting * 2
+	item.forceMove(get_turf(src))
+
+	var/datum/thrownthing/TT = item.throw_at(target, (pressure_setting * 5), (pressure_setting * 2), user)
+
+	if(TT && item.GetComponent(/datum/component/eatable))
+		RegisterSignal(item, COMSIG_MOVABLE_IMPACT, /obj/item/pneumatic_cannon/proc/cannon_food_impact)
+
+/obj/item/pneumatic_cannon/proc/cannon_food_impact(obj/item/source, atom/target)
+	UnregisterSignal(source, COMSIG_MOVABLE_IMPACT)
+
+	if(!ishuman(target))
+		return
+
+	var/mob/living/carbon/human/human = target
+
+	if(human.is_mouth_covered())
+		return
+
+	var/datum/component/eatable/eatable = source.GetComponent(/datum/component/eatable)
+	if(!eatable)
+		return
+
+	if(human.nutrition >= NUTRITION_LEVEL_FULL)
+		return
+
+	human.visible_message(
+		span_notice("[source] залетает прямо в рот [human]!"),
+		span_notice("[source] залетает вам прямо в рот!")
+	)
+
+	eatable.eat(human, human)
 
 /obj/item/pneumatic_cannon/attack_self(mob/user)
 	if(!loadedItems.len)
