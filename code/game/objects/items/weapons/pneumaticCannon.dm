@@ -203,7 +203,7 @@
 
 	var/datum/thrownthing/TT = item.throw_at(target, (pressure_setting * 5), (pressure_setting * 2), user)
 
-	if(TT && item.GetComponent(/datum/component/eatable))
+	if(TT && item.GetComponent(/datum/component/eatable) && user.zone_selected == BODY_ZONE_PRECISE_MOUTH)
 		RegisterSignal(item, COMSIG_MOVABLE_IMPACT, /obj/item/pneumatic_cannon/proc/cannon_food_impact)
 
 /obj/item/pneumatic_cannon/proc/cannon_food_impact(obj/item/source, atom/target)
@@ -214,7 +214,7 @@
 
 	var/mob/living/carbon/human/human = target
 
-	if(human.is_mouth_covered())
+	if(human.is_mouth_covered() || !human.check_has_mouth())
 		return
 
 	var/datum/component/eatable/eatable = source.GetComponent(/datum/component/eatable)
