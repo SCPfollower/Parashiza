@@ -132,6 +132,13 @@
 		update_controls()
 		return ATTACK_CHAIN_BLOCKED_ALL
 
+	if(istype(I, /obj/item/pen))
+		to_chat(user, span_message("Вы начали одевать одеяло в виде свиньи на [declent_ru(GENITIVE)]..."))
+		if(!do_after(user, 4 SECONDS * I.toolspeed, src, category = DA_CAT_TOOL))
+			return ATTACK_CHAIN_PROCEED
+		to_chat(user, span_message("Вы сделали нечто ужасное..."))
+		icon_state = "mulebot_pig"
+
 	var/atom/cached_load = load
 	. = ..()
 	if(!ATTACK_CHAIN_CANCEL_CHECK(.) && knock_off(1 + I.force * 2))
