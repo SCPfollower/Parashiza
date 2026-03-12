@@ -112,22 +112,26 @@
 		return ATTACK_CHAIN_PROCEED
 
 	if((loadedWeightClass + I.w_class) > maxWeightClass)
-		to_chat(user, span_warning("[DECLENT_RU_CAP(I, NOMINATIVE)] не вместиться в [src.declent_ru(ACCUSATIVE)]!"))
+		to_chat(user, span_warning("[DECLENT_RU_CAP(I, NOMINATIVE)] не вместиться в [declent_ru(ACCUSATIVE)]!"))
 		return ATTACK_CHAIN_PROCEED
 
 	if(I.w_class > w_class)
-		to_chat(user, span_warning("[DECLENT_RU_CAP(I, NOMINATIVE)] не влезет в [src.declent_ru(ACCUSATIVE)]!"))
+		to_chat(user, span_warning("[DECLENT_RU_CAP(I, NOMINATIVE)] не влезет в [declent_ru(ACCUSATIVE)]!"))
 		return ATTACK_CHAIN_PROCEED
 
-	if(istype(I, /obj/item/stack/sheet/cardboard) && !has_wad)
-		var/obj/item/stack/sheet/cardboard/cardboard = I
-		if(cardboard.amount > 1)
-			to_chat(user, span_warning("Нужен лишь один кусок картона!"))
+	if(istype(I, /obj/item/stack/sheet/cardboard))
+		if(has_wad)
+			to_chat(user, span_warning("В [declent_ru(PREPOSITIONAL)] уже вставлен пыж!"))
 			return ATTACK_CHAIN_PROCEED
-		add_fingerprint(user)
+
+		var/obj/item/stack/sheet/cardboard/cardboard_stack = I
+
+		if(!cardboard_stack.use(1))
+			return ATTACK_CHAIN_PROCEED
+
 		has_wad = TRUE
-		to_chat(user, span_notice("Вы загрузили пыж в [src]!"))
-		qdel(I)
+		add_fingerprint(user)
+		to_chat(user, span_notice("Вы плотно забиваете картонный пыж в дуло [declent_ru(GENITIVE)]."))
 		return ATTACK_CHAIN_BLOCKED_ALL
 
 	if(!has_wad)
@@ -192,44 +196,60 @@
 		user.visible_message(span_warning("[user.declent_ru(NOMINATIVE)] падает на пол от отдачи!"), span_userdanger("[src.declent_ru(GENITIVE)] роняет вас силой отдачи!"))
 		user.Weaken(6 SECONDS)
 
-/obj/item/pneumatic_cannon/proc/launch_item(obj/item/item, atom/target, mob/user)
-	if(QDELETED(item) || !item)
+/obj/item/pneumatic_cannon/proc/launch_item(obj/item/projectile, atom/target_atom, mob/living/user)
+	if(QDELETED(projectile))
 		return
 
-	loadedItems.Remove(item)
-	loadedWeightClass -= item.w_class
-	item.throw_speed = pressure_setting * 2
-	item.forceMove(get_turf(src))
+	loadedItems.Remove(projectile)
+	loadedWeightClass -= projectile.w_class
+	projectile.throw_speed = pressure_setting * 2
+	projectile.forceMove(get_turf(src))
 
-	var/datum/thrownthing/TT = item.throw_at(target, (pressure_setting * 5), (pressure_setting * 2), user)
+	var/datum/thrownthing/throwing_info = projectile.throw_at(target_atom, (pressure_setting * 5), (pressure_setting * 2), user)
 
-	if(TT && item.GetComponent(/datum/component/eatable) && user.zone_selected == BODY_ZONE_PRECISE_MOUTH)
-		RegisterSignal(item, COMSIG_MOVABLE_IMPACT, /obj/item/pneumatic_cannon/proc/cannon_food_impact)
-
-/obj/item/pneumatic_cannon/proc/cannon_food_impact(obj/item/source, atom/target)
-	UnregisterSignal(source, COMSIG_MOVABLE_IMPACT)
-
-	if(!ishuman(target))
+	if(!throwing_info || !projectile.GetComponent(/datum/component/eatable))
 		return
 
-	var/mob/living/carbon/human/human = target
-
-	if(human.is_mouth_covered() || !human.check_has_mouth())
+	if(!(user.zone_selected in list(BODY_ZONE_HEAD, BODY_ZONE_PRECISE_MOUTH)))
 		return
 
-	var/datum/component/eatable/eatable = source.GetComponent(/datum/component/eatable)
-	if(!eatable)
+	RegisterSignal(projectile, COMSIG_MOVABLE_IMPACT, PROC_REF(cannon_food_impact))
+
+/obj/item/pneumatic_cannon/proc/cannon_food_impact(obj/item/food_projectile, atom/hit_target, datum/thrownthing/throwing_info)
+	SIGNAL_HANDLER
+
+	UnregisterSignal(food_projectile, COMSIG_MOVABLE_IMPACT)
+
+	var/mob/living/carbon/human/human_target = hit_target
+	if(!ishuman(human_target))
 		return
 
-	if(human.nutrition >= NUTRITION_LEVEL_FULL)
+	if(throwing_info)
+		throwing_info.finalize(FALSE)
+
+	if(human_target.is_mouth_covered() || !human_target.check_has_mouth())
+		to_chat(human_target, span_warning("[food_projectile] больно бьет вас по лицу!"))
+		food_projectile.forceMove(get_turf(human_target))
 		return
 
-	human.visible_message(
-		span_notice("[source] залетает прямо в рот [human]!"),
-		span_notice("[source] залетает вам прямо в рот!")
+	var/datum/component/eatable/eatable_component = food_projectile.GetComponent(/datum/component/eatable)
+	if(!eatable_component)
+		return
+
+	if(human_target.nutrition >= NUTRITION_LEVEL_FULL)
+		human_target.visible_message(span_warning("[food_projectile] ударяется о плотно сжатые губы [human_target]!"))
+		food_projectile.forceMove(get_turf(human_target))
+		return
+
+	human_target.visible_message(
+		span_notice("[food_projectile] на скорости залетает прямо в рот [human_target]!"),
+		span_boldnotice("Вы поймали [food_projectile] ртом и откусили кусочек!")
 	)
 
-	eatable.eat(human, human)
+	eatable_component.eat(human_target, human_target)
+
+	if(!QDELETED(food_projectile))
+		food_projectile.forceMove(get_turf(human_target))
 
 /obj/item/pneumatic_cannon/attack_self(mob/user)
 	if(!loadedItems.len)
