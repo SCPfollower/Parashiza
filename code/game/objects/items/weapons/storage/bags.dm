@@ -42,12 +42,16 @@
 	icon_state = "trashbag"
 	item_state = "trashbag"
 
-	w_class = WEIGHT_CLASS_BULKY
+	w_class = WEIGHT_CLASS_NORMAL
 	slot_flags = NONE
 	storage_slots = 30
 	max_combined_w_class = 30
 	can_hold = list() // any
 	cant_hold = list(/obj/item/disk/nuclear)
+
+/obj/item/storage/bag/trash/Initialize(mapload)
+	. = ..()
+	update_weight()
 
 /obj/item/storage/bag/trash/suicide_act(mob/user)
 	user.visible_message(span_suicide("[user] puts the [name] over [user.p_their()] head and starts chomping at the insides! Disgusting!"))
@@ -111,6 +115,20 @@
 		return
 	user.balloon_alert(user, "успешно собрано!")
 
+/obj/item/storage/bag/trash/handle_item_insertion(obj/item/I, prevent_warning)
+	. = ..()
+	update_weight()
+
+/obj/item/storage/bag/trash/remove_from_storage(obj/item/I, atom/new_location)
+	. = ..()
+	update_weight()
+
+/obj/item/storage/bag/trash/proc/update_weight()
+	if(!length(contents))
+		w_class = initial(w_class)
+		return
+	w_class = WEIGHT_CLASS_BULKY
+
 ////////////////////////////////////////
 // MARK:	Plastic bag
 ////////////////////////////////////////
@@ -121,7 +139,7 @@
 	icon_state = "plasticbag"
 	item_state = "plasticbag"
 	slot_flags = ITEM_SLOT_HEAD|ITEM_SLOT_BELT
-	w_class = WEIGHT_CLASS_BULKY
+	w_class = WEIGHT_CLASS_NORMAL
 	display_contents_with_number = 0 //or else this will lead to stupid behavior.
 	can_hold = list() // any
 	cant_hold = list(/obj/item/disk/nuclear)
