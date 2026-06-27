@@ -1,5 +1,3 @@
-#define EXTRA_MONEY 10000
-
 #define SSCAPITALISM_STAGE_IDLE 0
 #define SSCAPITALISM_STAGE_BUILD_RUN 1
 #define SSCAPITALISM_STAGE_PAY 2
@@ -259,7 +257,6 @@ SUBSYSTEM_DEF(capitalism)
 		account.credit(bounty, "Начисление награды за выполнение заказа.", "Терминал Бизель №[rand(111,333)]", account.owner_name)
 	return TRUE
 
-#undef EXTRA_MONEY
 #undef SSCAPITALISM_STAGE_IDLE
 #undef SSCAPITALISM_STAGE_BUILD_RUN
 #undef SSCAPITALISM_STAGE_PAY

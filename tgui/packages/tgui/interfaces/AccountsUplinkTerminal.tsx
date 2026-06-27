@@ -3,12 +3,16 @@ import { useBackend } from '../backend';
 import { Key, ReactNode, useState } from 'react';
 import {
   Button,
+  Box,
+  Dropdown,
   Icon,
   Input,
   LabeledList,
   Section,
   Stack,
   Table,
+  RestrictedInput,
+  Slider,
 } from '../components';
 import { Window } from '../layouts';
 import { LoginInfo } from './common/LoginInfo';
@@ -28,6 +32,8 @@ type Account = {
   suspended: boolean;
   money: number;
   transactions: Transaction[];
+  salary_modifier?: number;
+  salary_modifier_uid?: string;
 };
 
 export type Transaction = {
@@ -239,7 +245,27 @@ const AccountsActions = (properties: AccountsActionsProps) => {
 
 const DetailedAccountInfo = (_properties) => {
   const { act, data } = useBackend<Account>();
-  const { account_number, owner_name, money, suspended, transactions } = data;
+  const {
+    account_number,
+    owner_name,
+    money,
+    suspended,
+    transactions,
+    salary_modifier,
+    salary_modifier_uid,
+  } = data;
+
+  const isModified = salary_modifier !== undefined && salary_modifier !== 0;
+  const [selectedValue, setSelectedValue] = useState<number>(
+    salary_modifier || 0
+  );
+  const color =
+    (salary_modifier || 0) > 0
+      ? 'good'
+      : (salary_modifier || 0) < 0
+        ? 'bad'
+        : 'transparent';
+
   return (
     <Stack fill vertical>
       <Stack.Item>
@@ -272,6 +298,70 @@ const DetailedAccountInfo = (_properties) => {
                 {suspended ? 'Unsuspend' : 'Suspend'}
               </Button>
             </LabeledList.Item>
+            <LabeledList.Item label="Корректировка зарплаты">
+              <Box>
+                Введите значение процента корректировки заработной платы
+                (диапазон: –95% … +95%).
+              </Box>
+              <Stack>
+                <Stack.Item grow maxWidth="50%">
+                  <Slider
+                    value={selectedValue}
+                    minValue={-95}
+                    maxValue={95}
+                    step={1}
+                    width="100%"
+                    onChange={(e, value) => setSelectedValue(value)}
+                  />
+                </Stack.Item>
+                <Stack.Item>
+                  <Button
+                    icon="save"
+                    color="good"
+                    onClick={() =>
+                      act('set_salary_modifier', {
+                        modifier: selectedValue,
+                        owner_name: owner_name,
+                        salary_modifier_uid: salary_modifier_uid,
+                      })
+                    }
+                  >
+                    Применить
+                  </Button>
+                </Stack.Item>
+              </Stack>
+
+              {isModified && (
+                <Box mt={0.5} fontSize="0.9rem">
+                  <Icon name="info-circle" color={color} />{' '}
+                  <Box color={color} inline>
+                    Текущий модификатор: {salary_modifier > 0 ? '+' : ''}
+                    {salary_modifier}%
+                  </Box>
+                  <Button
+                    ml={1}
+                    icon="undo"
+                    color="transparent"
+                    fontSize="0.8rem"
+                    onClick={() => {
+                      setSelectedValue(0);
+                      act('set_salary_modifier', {
+                        modifier: 0,
+                        owner_name: owner_name,
+                        salary_modifier_uid: salary_modifier_uid,
+                      });
+                    }}
+                  >
+                    Сбросить
+                  </Button>
+                </Box>
+              )}
+              <Box className="text-muted" mt={0.5} fontSize="11px">
+                <Icon name="info-circle" mr={0.5} />
+                Важно: Изменения будут применены автоматически со следующего
+                расчётного периода.
+              </Box>
+            </LabeledList.Item>
           </LabeledList>
         </Section>
       </Stack.Item>
@@ -288,7 +378,7 @@ const DetailedAccountInfo = (_properties) => {
               <Table.Row key={t}>
                 <Table.Cell>{t.time}</Table.Cell>
                 <Table.Cell>{t.purpose}</Table.Cell>
-                <Table.Cell color={t.is_deposit ? 'green' : 'red'}>
+                <Table.Cell color={t.amount >= 0 ? 'green' : 'red'}>
                   ${t.amount}
                 </Table.Cell>
                 <Table.Cell>{t.target_name}</Table.Cell>
