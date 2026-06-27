@@ -1,7 +1,9 @@
 /turf/space/openspace
 	name = "open space"
 	desc = "Watch your step!"
-	icon_state = "openspace" //transparent
+	icon = 'icons/turf/floors.dmi'
+	icon_state = MAP_SWITCH("pure_white", "invisible")
+	plane = TRANSPARENT_FLOOR_PLANE
 	baseturf = /turf/space/openspace
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
 	pathing_pass_method = TURF_PATHING_PASS_PROC
@@ -13,11 +15,22 @@
 	if(!GET_TURF_BELOW(src))
 		stack_trace("[src] was inited as openspace with nothing below it at ([x], [y], [z])")
 	RegisterSignal(src, COMSIG_ATOM_AFTER_SUCCESSFUL_INITIALIZED_ON, PROC_REF(on_atom_created))
+	icon_state = "pure_white"
+	// We make the assumption that the space plane will never be blacklisted, as an optimization
+	if(SSmapping.max_plane_offset)
+		plane = TRANSPARENT_FLOOR_PLANE - (PLANE_RANGE * SSmapping.z_level_to_plane_offset[z])
 	return INITIALIZE_HINT_LATELOAD
 
 /turf/space/openspace/LateInitialize()
 	. = ..()
 	AddElement(/datum/element/turf_z_transparency)
+
+/turf/space/openspace/Destroy()
+	// Signals persist through destroy, GO HOME
+	var/turf/below = GET_TURF_BELOW(src)
+	if(below)
+		UnregisterSignal(below, COMSIG_TURF_CHANGE)
+	return ..()
 
 /turf/space/openspace/get_smooth_underlay_icon(mutable_appearance/underlay_appearance, turf/asking_turf, adjacency_dir)
 	generate_space_underlay(underlay_appearance, asking_turf)
@@ -93,6 +106,32 @@
 				return FALSE
 		return TRUE
 	return FALSE
+
+/turf/space/openspace/enable_starlight()
+	var/turf/below = GET_TURF_BELOW(src)
+	// Override = TRUE beacuse we could have our starlight updated many times without a failure, which'd trigger this
+	RegisterSignal(below, COMSIG_TURF_CHANGE, PROC_REF(on_below_change), override = TRUE)
+	if(!isspaceturf(below) || light_on)
+		return
+	set_light(l_on = TRUE, l_range = GLOB.starlight_range, l_power = GLOB.starlight_power, l_color = GLOB.starlight_color)
+	GLOB.starlight += src
+
+/turf/space/openspace/update_starlight()
+	. = ..()
+	if(.)
+		return
+	// If we're here, the starlight is not to be
+	var/turf/below = GET_TURF_BELOW(src)
+	UnregisterSignal(below, COMSIG_TURF_CHANGE)
+
+/turf/space/openspace/proc/on_below_change(turf/source, path, list/new_baseturfs, flags, list/post_change_callbacks)
+	SIGNAL_HANDLER
+	if(isspaceturf(source) && !ispath(path, /turf/space))
+		GLOB.starlight += src
+		set_light(l_on = TRUE, l_range = GLOB.starlight_range, l_power = GLOB.starlight_power, l_color = GLOB.starlight_color)
+	else if(!isspaceturf(source) && ispath(path, /turf/space))
+		GLOB.starlight -= src
+		set_light(l_on = FALSE)
 
 /turf/space/openspace/proc/CanCoverUp()
 	return can_cover_up
