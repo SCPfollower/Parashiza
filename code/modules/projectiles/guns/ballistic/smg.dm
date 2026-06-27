@@ -4,7 +4,6 @@
 	base_pixel_x = -8
 	accuracy = GUN_ACCURACY_RIFLE_EXTEND_SPREAD
 	recoil = GUN_RECOIL_MEDIUM
-	weapon_weight = WEAPON_HEAVY
 	gun_firemode_list = list(GUN_FIREMODE_SEMIAUTO, GUN_FIREMODE_BURSTFIRE, GUN_FIREMODE_AUTOMATIC)
 
 	/// Exists chambered light indicator in gun
@@ -93,7 +92,7 @@
 	desc = "Новейшая модификация автоматического пистолет-пулемёта \"C-20r\" под .45 калибр. Отличается высоким темпом стрельбы в автоматическом режиме."
 	accuracy = GUN_ACCURACY_PISTOL
 	recoil = GUN_RECOIL_LOW
-	fire_delay = 0.25 SECONDS
+	fire_delay = 0.2 SECONDS
 
 /obj/item/gun/projectile/automatic/smg/c20r/auto/get_ru_names()
 	return alist(
@@ -191,7 +190,6 @@
 	)
 	starting_attachment_types = list(/obj/item/gun_module/stock, /obj/item/gun_module/muzzle/suppressor/integrated)
 	gun_firemode_list = list(GUN_FIREMODE_SEMIAUTO, GUN_FIREMODE_BURSTFIRE)
-	fire_delay = 0.2 SECONDS
 	damage_mod = 0.7
 	chambered_light_exists = TRUE
 	mag_ammo_counter_exists = TRUE
@@ -220,7 +218,6 @@
 		ATTACHMENT_SLOT_MUZZLE = list(ATTACHMENT_OFFSET_X = 18, ATTACHMENT_OFFSET_Y = 7),
 		ATTACHMENT_SLOT_RAIL = list(ATTACHMENT_OFFSET_X = 0, ATTACHMENT_OFFSET_Y = 12),
 	)
-	weapon_weight = WEAPON_LIGHT
 	accuracy = GUN_ACCURACY_PISTOL
 	recoil = GUN_RECOIL_LOW
 
@@ -236,8 +233,8 @@
 	mag_type = /obj/item/ammo_box/magazine/tommygunm45
 	fire_sound = 'sound/weapons/gunshots/1saber.ogg'
 	burst_amount = 4
-	fire_delay = 0.2 SECONDS
 	recoil = GUN_RECOIL_MEDIUM
+	weapon_weight = WEAPON_HEAVY
 
 // MARK: SFG-5
 /obj/item/gun/projectile/automatic/smg/sfg
@@ -267,8 +264,8 @@
 	magin_sound = 'sound/weapons/gun_interactions/batrifle_magin.ogg'
 	magout_sound = 'sound/weapons/gun_interactions/batrifle_magout.ogg'
 	burst_amount = 5
-	fire_delay = 0.2 SECONDS
 	accuracy = GUN_ACCURACY_PISTOL
+	weapon_weight = WEAPON_HEAVY
 	attachable_allowed = GUN_MODULE_CLASS_RIFLE_MUZZLE | GUN_MODULE_CLASS_RIFLE_RAIL
 	attachable_offset = list(
 		ATTACHMENT_SLOT_MUZZLE = list(ATTACHMENT_OFFSET_X = 20, ATTACHMENT_OFFSET_Y = 2),
